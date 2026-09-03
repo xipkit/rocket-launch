@@ -15,6 +15,26 @@ pub enum Phase {
     Hold { at: i64, reason: String },
     Ignition,
     Liftoff,
+    /// Terminal: the count stopped inside the auto-abort window.
+    Aborted { at: i64, mode: AbortMode },
+}
+
+/// What tripped inside T-10. Each mode has its own safing sequence.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AbortMode {
+    ChamberPressure,
+    Ullage,
+    Bus,
+}
+
+impl AbortMode {
+    pub fn safing(&self) -> &'static str {
+        match self {
+            AbortMode::ChamberPressure => "close main valves, purge chamber",
+            AbortMode::Ullage => "vent LOX to 2.0 bar, hold RP-1",
+            AbortMode::Bus => "swap to ground power, disarm FTS",
+        }
+    }
 }
 
 impl Phase {
@@ -26,6 +46,7 @@ impl Phase {
             Phase::Hold { .. } => "HOLD",
             Phase::Ignition => "IGN",
             Phase::Liftoff => "LIFT",
+            Phase::Aborted { .. } => "ABORT",
         }
     }
 }
@@ -33,12 +54,13 @@ impl Phase {
 #[derive(Debug)]
 pub struct Abort {
     pub t: i64,
+    pub mode: AbortMode,
     pub reason: String,
 }
 
 impl fmt::Display for Abort {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} at T{:+}", self.reason, self.t)
+        write!(f, "{} at T{:+}; {}", self.reason, self.t, self.mode.safing())
     }
 }
 
@@ -116,10 +138,12 @@ impl Sequencer {
     /// Advance one second. Returns the new phase, or the abort that stopped
     /// the count.
     pub fn step(&mut self, frame: &Frame) -> Result<Phase, Abort> {
-        if let Some(reason) = self.redline(frame) {
+        if let Some((mode, reason)) = self.redline(frame) {
             if self.manifest.sequencer.auto_abort && self.t > -10 {
+                self.phase = Phase::Aborted { at: self.t, mode };
                 return Err(Abort {
                     t: self.t,
+                    mode,
                     reason,
                 });
             }
@@ -140,17 +164,34 @@ impl Sequencer {
         Ok(self.phase.clone())
     }
 
-    fn redline(&self, frame: &Frame) -> Option<String> {
+    fn redline(&self, frame: &Frame) -> Option<(AbortMode, String)> {
         if frame.chamber_pressure > MAX_CHAMBER_PRESSURE_BAR {
-            return Some(format!("chamber pressure {:.1} bar", frame.chamber_pressure));
+            return Some((
+                AbortMode::ChamberPressure,
+                format!("chamber pressure {:.1} bar", frame.chamber_pressure),
+            ));
         }
         if frame.lox_pressure < MIN_LOX_PRESSURE_BAR && self.t > -120 {
-            return Some(format!("LOX ullage {:.2} bar", frame.lox_pressure));
+            return Some((
+                AbortMode::Ullage,
+                format!("LOX ullage {:.2} bar", frame.lox_pressure),
+            ));
         }
         if frame.battery_v < MIN_BATTERY_V {
-            return Some(format!("bus voltage {:.1} V", frame.battery_v));
+            return Some((AbortMode::Bus, format!("bus voltage {:.1} V", frame.battery_v)));
         }
         None
+    }
+
+    /// Release a hold and resume the count from where it stopped.
+    pub fn release_hold(&mut self) -> bool {
+        match self.phase {
+            Phase::Hold { .. } => {
+                self.phase = Phase::TerminalCount;
+                true
+            }
+            _ => false,
+        }
     }
 
     pub fn holds_taken(&self) -> usize {
@@ -180,5 +221,18 @@ mod tests {
             seq.step(&frame).unwrap();
         }
         assert_eq!(seq.holds_taken(), 0);
+    }
+
+    #[test]
+    fn low_bus_holds_early_and_aborts_late() {
+        let mut seq = Sequencer::from_manifest("mission.toml").unwrap();
+        let mut frame = nominal();
+        frame.battery_v = 26.0;
+        assert!(matches!(seq.step(&frame), Ok(Phase::Hold { .. })));
+        assert!(seq.release_hold());
+        seq.t = -5;
+        let err = seq.step(&frame).unwrap_err();
+        assert_eq!(err.mode, AbortMode::Bus);
+        assert!(matches!(seq.phase(), Phase::Aborted { .. }));
     }
 }
