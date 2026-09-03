@@ -7,8 +7,9 @@ pub struct Frame {
     pub chamber_pressure: f64,
     /// Oxidizer tank ullage pressure in bar.
     pub lox_pressure: f64,
-    /// Main bus voltage.
+    /// Main bus voltage in volts.
     pub battery_v: f64,
+    /// GPS altitude above the ellipsoid in metres.
     pub altitude_m: f64,
 }
 
