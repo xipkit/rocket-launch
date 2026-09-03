@@ -1,6 +1,7 @@
 //! Kestrel launch sequencer: walks the terminal count, honours holds, and
 //! hands off to the flight computer at T-0.
 
+mod compress;
 mod sequencer;
 mod telemetry;
 
