@@ -11,7 +11,7 @@ the dashboard indexes by position, not by name. #telemetry #downlink
 | 3 | `imu_ax`      | m/s² | ±50          |
 | 4 | `imu_ay`      | m/s² | ±50          |
 | 5 | `imu_az`      | m/s² | ±50          |
-| 6 | `gps_alt`     | m    | 0 – 400 000  |
+| 6 | `gps_alt`     | m    | 0 – 400 000 (above the ellipsoid) |
 | 7 | `gps_vel`     | m/s  | 0 – 8 000    |
 | 8 | `bat_v`       | V    | 24 – 30      |
 | 9 | `fts_arm`     | bool |              |
