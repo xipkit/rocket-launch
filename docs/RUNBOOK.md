@@ -35,6 +35,17 @@ The sequencer prints one line per second. Watch for `HOLD`.
 > A hold at T-01:00 for LOX ullage usually clears itself in under two
 > minutes. Do not recycle the count for it.
 
+## Aborts
+
+The sequencer prints the abort mode and the safing sequence for it. Read the
+safing line on the loop, then hand over to the pad crew.
+
+| Mode              | Safing                              |
+| ----------------- | ----------------------------------- |
+| Chamber pressure  | close main valves, purge chamber    |
+| Ullage            | vent LOX to 2.0 bar, hold RP-1      |
+| Bus               | swap to ground power, disarm FTS    |
+
 ## After liftoff
 
 - [ ] Confirm MECO on the dashboard

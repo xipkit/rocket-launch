@@ -27,6 +27,7 @@ fn main() -> anyhow::Result<()> {
             Ok(phase) => println!("{:<6} T{:+}", phase.label(), seq.t()),
             Err(abort) => {
                 eprintln!("ABORT T{:+} {abort}", seq.t());
+                eprintln!("SAFING {}", abort.mode.safing());
                 return Err(abort.into());
             }
         }
