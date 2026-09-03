@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="200" viewBox="0 0 480 200">
+  <rect width="480" height="200" rx="12" fill="#1f2430"/>
+  <g transform="translate(40,20)">
+    <path d="M60 0 C90 40 90 100 60 160 C30 100 30 40 60 0 Z" fill="#e6e9ef"/>
+    <path d="M60 0 C75 30 75 60 60 60 C45 60 45 30 60 0 Z" fill="#ff7b72"/>
+    <path d="M40 120 L20 160 L45 150 Z" fill="#79c0ff"/>
+    <path d="M80 120 L100 160 L75 150 Z" fill="#79c0ff"/>
+    <ellipse cx="60" cy="172" rx="14" ry="20" fill="#ffa657" opacity="0.9"/>
+    <ellipse cx="60" cy="180" rx="7" ry="12" fill="#fff3b0"/>
+  </g>
+  <text x="180" y="80" font-family="Helvetica, Arial" font-size="34" font-weight="700" fill="#e6e9ef">KESTREL</text>
+  <text x="180" y="112" font-family="Helvetica, Arial" font-size="16" fill="#9aa4b2">small-lift launch vehicle · block 1</text>
+  <text x="180" y="150" font-family="Helvetica, Arial" font-size="13" fill="#79c0ff">T-00:00:10 · propellant loaded · range green</text>
+</svg>
