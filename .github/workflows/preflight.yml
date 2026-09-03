@@ -1,0 +1,25 @@
+name: Preflight
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  manifests:
+    name: Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the mission manifest
+        run: |
+          test -f mission.toml
+          grep -q 'name = "KST-3"' mission.toml
+          echo "manifest ok"
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every note links somewhere
+        run: |
+          for f in docs/notes/*.md; do grep -q '\[\[' "$f" || grep -q '](' "$f" || { echo "no links in $f"; exit 1; }; done
+          echo "docs ok"
